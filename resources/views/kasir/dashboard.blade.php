@@ -23,6 +23,13 @@
                 Role: {{ auth()->user()->role }}
             </p>
 
+            <a
+                href="{{ route('orders.index') }}"
+                class="inline-block px-4 py-2 mb-6 bg-green-700 text-white rounded hover:bg-green-800"
+            >
+                Daftar Invoice
+            </a>
+
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
 
