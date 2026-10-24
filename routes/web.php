@@ -1,9 +1,19 @@
 <?php
 
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\EmailController;
+use App\Http\Controllers\KasirController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProfileController;
+use App\Mail\NotifyUser;
+use App\Models\User;
+use App\Notifications\InvoicePaid;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Mail;
 
 Route::get('/', function () {
     return redirect()->route('products.index');
@@ -29,9 +39,6 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\KasirController;
-
 Route::middleware(['auth'])->group(function () {
 
     Route::middleware('role:admin')->group(function () {
@@ -48,4 +55,78 @@ Route::middleware(['auth'])->group(function () {
             ->name('kasir.dashboard');
     });
 
+});
+Route::get('/produk-gambar', [
+    ProductImageController::class,
+    'index'
+])->name('produk-gambar.index');
+
+Route::post('/produk-gambar', [
+    ProductImageController::class,
+    'upload'
+])->name('produk-gambar.upload');
+
+Route::post('/produk-gambar/tampilkan', [
+    ProductImageController::class,
+    'tampilkan'
+])->name('produk-gambar.tampilkan');
+
+Route::get('/uji-email', [EmailController::class, 'index'])
+    ->name('email.index');
+
+Route::post('/uji-email', [EmailController::class, 'send'])
+    ->name('email.send');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email');
+    })->name('verification.notice');
+
+    Route::get('/email/verify/{id}/{hash}', function (
+        EmailVerificationRequest $request
+    ) {
+        $request->fulfill();
+
+        return redirect('/dashboard');
+    })->middleware(['signed', 'throttle:6,1'])
+      ->name('verification.verify');
+
+    Route::post('/email/verification-notification', function (
+        Request $request
+    ) {
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with(
+            'message',
+            'Link verifikasi dikirim ulang!'
+        );
+    })->middleware('throttle:6,1')
+      ->name('verification.send');
+});
+
+Route::get('/uji-markdown', function () {
+    return view('uji-markdown');
+});
+
+Route::post('/uji-markdown', function (Request $request) {
+    $data = $request->validate([
+        'name' => 'required|string|max:100',
+        'email' => 'required|email',
+    ]);
+
+    $user = (object) [
+        'name' => $data['name'],
+        'email' => $data['email'],
+    ];
+
+    Mail::to($user->email)->send(new NotifyUser($user));
+
+    return back()->with('success', 'Email Markdown sudah diproses.');
+});
+Route::get('/uji-notifikasi/{id}', function ($id) {
+    $user = User::findOrFail($id);
+
+    $user->notify(new InvoicePaid());
+
+    return 'Notifikasi email sudah diproses.';
 });
