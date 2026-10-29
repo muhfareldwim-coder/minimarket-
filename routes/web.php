@@ -130,3 +130,5 @@ Route::get('/uji-notifikasi/{id}', function ($id) {
 
     return 'Notifikasi email sudah diproses.';
 });
+
+Route::post('/orders', [OrderController::class, 'store'])->middleware('auth');

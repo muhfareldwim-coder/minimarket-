@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Daftar Invoice</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/realtime.js'])
     <style>
         body { margin: 0; background: #f5f6f2; color: #17211b; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         main { width: min(960px, calc(100% - 32px)); margin: 40px auto; }
@@ -19,7 +19,7 @@
         .pagination { padding: 16px; }
     </style>
 </head>
-<body>
+<body data-user-id="{{ auth()->id() }}">
     <main>
         <header class="top">
             <h1>Daftar Invoice</h1>
@@ -55,5 +55,10 @@
             @endif
         </section>
     </main>
+    <form action="/orders" method="POST">
+        @csrf
+        <button type="submit" class="btn btn-primary">Buat Order Baru</button>
+    </form>
+
 </body>
 </html>

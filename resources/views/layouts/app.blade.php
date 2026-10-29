@@ -32,5 +32,14 @@
                 {{ $slot }}
             </main>
         </div>
+        @auth
+        <script>
+            window.Echo.private('user.{{ auth()->id() }}')
+                .listen('.order.placed', (e) => {
+                    alert(`Order #${e.order_id} telah ditempatkan! Total: Rp ${e.total}`);
+                    console.log('Order Placed:', e);
+                });
+        </script>
+        @endauth
     </body>
 </html>

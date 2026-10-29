@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\Order;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use App\Events\OrderPlaced;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -54,5 +59,20 @@ class OrderController extends Controller
             ->setPaper('a4');
 
         return $pdf->download('invoice_'.$invoice['id'].'.pdf');
+    }                                   // baris 58: tutup method invoice
+
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+
+        $order = Order::create([
+            'customer_name' => $request->customer_name ?? ($user?->name ?? 'Guest'),
+            'total_amount'  => $request->total_amount ?? 10000,
+        ]);
+
+        // setelah proses simpan order berhasil
+        event(new OrderPlaced($order, $user));
+
+        return redirect()->back()->with('success', 'Order berhasil dibuat');
     }
 }
