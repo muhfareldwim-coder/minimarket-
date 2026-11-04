@@ -7,6 +7,7 @@ use App\Http\Controllers\KasirController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Receipt36PdfController;
 use App\Mail\NotifyUser;
 use App\Models\User;
 use App\Notifications\InvoicePaid;
@@ -14,6 +15,8 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\Receipt36Controller;
 
 Route::get('/', function () {
     return redirect()->route('products.index');
@@ -132,3 +135,25 @@ Route::get('/uji-notifikasi/{id}', function ($id) {
 });
 
 Route::post('/orders', [OrderController::class, 'store'])->middleware('auth');
+
+
+
+Route::get('/print-receipt', [ReceiptController::class, 'print']);
+
+
+
+// ACARA 36 - Simulasi cetak struk ESC/POS
+Route::get('/transaksi/{id}/struk-acara36', [
+    Receipt36Controller::class,
+    'print'
+])->name('transaksi.struk.acara36');
+
+Route::get('/transaksi/{order}/pdf-acara36', [
+    Receipt36PdfController::class,
+    'show',
+])->name('transaksi.pdf.acara36');
+
+Route::get('/transaksi/{order}/struk', [
+    Receipt36PdfController::class,
+    'show',
+])->name('transaksi.struk');

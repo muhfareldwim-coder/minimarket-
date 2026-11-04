@@ -9,6 +9,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use App\Events\OrderPlaced;
 use Illuminate\Http\Request;
+use App\Services\Receipt36Service;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -61,7 +63,7 @@ class OrderController extends Controller
         return $pdf->download('invoice_'.$invoice['id'].'.pdf');
     }                                   // baris 58: tutup method invoice
 
-    public function store(Request $request)
+    public function store(Request $request, Receipt36Service $receiptService)
     {
         $user = Auth::user();
 
@@ -72,6 +74,12 @@ class OrderController extends Controller
 
         // setelah proses simpan order berhasil
         event(new OrderPlaced($order, $user));
+
+        try {
+            $receiptService->print($order);
+        } catch (\Throwable $e) {
+            Log::error('Gagal membuat struk Acara 36: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Order berhasil dibuat');
     }
